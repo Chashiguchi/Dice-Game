@@ -18,7 +18,11 @@ struct ContentView: View {
     @State private var turnMessage = ""
     @State private var guessDice1 = ""
     @State private var guessDice2 = ""
+    @State private var isDiceVisible = true
+    @State private var isRolling = false
+    @State private var isWinner = false
     var body: some View {
+        NavigationView {
         ZStack {
             Color.gray.opacity(0.7).ignoresSafeArea()
             VStack {
@@ -30,18 +34,31 @@ struct ContentView: View {
                         .padding()
                     CustomText(text: "High Score: \(highScore)")
                 }
-                HStack{
-                    Image("pips \(Dice1)")
-                        .resizable()
-                        .frame(width: 175, height: 175, alignment: .center)
-                        .rotationEffect(.degrees(rotation))
-                        .rotation3DEffect(.degrees(rotation), axis: (x: 1, y: 1, z: 0))
-                        .padding()
-                    Image("pips \(Dice2)")
-                        .resizable()
-                        .frame(width: 175, height: 175, alignment: .center)
-                        .rotationEffect(.degrees(rotation))
-                        .rotation3DEffect(.degrees(rotation), axis: (x: 1, y: 1, z: 0))
+                HStack {
+                    // Show the dice or placeholder images based on `isDiceVisible`
+                    if isDiceVisible {
+                        // Show actual dice faces if visible
+                        Image("pips \(Dice1)")
+                            .resizable()
+                            .frame(width: 175, height: 175, alignment: .center)
+                            .rotationEffect(.degrees(rotation))
+                            .rotation3DEffect(.degrees(rotation), axis: (x: 1, y: 1, z: 0))
+                            .padding()
+                        Image("pips \(Dice2)")
+                            .resizable()
+                            .frame(width: 175, height: 175, alignment: .center)
+                            .rotationEffect(.degrees(rotation))
+                            .rotation3DEffect(.degrees(rotation), axis: (x: 1, y: 1, z: 0))
+                    } else {
+                        // Show placeholder images while the dice are hidden (pips 0)
+                        Image("pips 0")  // Placeholder for the first die
+                            .resizable()
+                            .frame(width: 175, height: 175, alignment: .center)
+                            .padding()
+                        Image("pips 0")  // Placeholder for the second die
+                            .resizable()
+                            .frame(width: 175, height: 175, alignment: .center)
+                    }
                 }
                 .padding()
                 HStack {
@@ -73,8 +90,27 @@ struct ContentView: View {
                     }
                 }
                 .buttonStyle(CustomButtonStyle())
+                NavigationLink("How to Play", destination: InstructionsView())
+                    .font(Font.custom("Marker Felt", size: 24))
                 Spacer()
-                if isGameOver {
+                if isWinner {
+                    VStack {
+                        Text("You Win!")
+                            .font(.title)
+                            .foregroundColor(.green)
+                            .padding()
+                        
+                        // Reset button to restart the game
+                        Button("Reset") {
+                            resetGame()  // Reset the game and start over
+                        }
+                        .buttonStyle(CustomButtonStyle())
+                        .padding()
+                    }
+                }
+                
+                // Display the turn-over message and button to continue if game over
+                if isGameOver && !isWinner {
                     VStack {
                         Text(turnMessage)
                             .font(.title)
@@ -96,32 +132,43 @@ struct ContentView: View {
                     }
                 }
             }
+            }
             .padding()
         }
     }
     func chooseRandom(times: Int) {
+        isDiceVisible = true
         if times > 0 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 Dice1 = Int.random(in: 1...6)
                 Dice2 = Int.random(in: 1...6)
                 chooseRandom(times: times - 1)
             }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                // Hide the dice after the 3 seconds viewing period
+                isDiceVisible = false
+                checkGuess()  // Check the guess after the dice are shown
+            }
         }
     }
     
     func checkGuess() {
-        // Convert the entered guesses for both dice into integers
         if let enteredGuessDice1 = Int(guessDice1), let enteredGuessDice2 = Int(guessDice2) {
-            // Check if both entered guesses match the dice rolls
             if enteredGuessDice1 == Dice1 && enteredGuessDice2 == Dice2 {
                 score += 1  // Increase score if the guess is correct
-                // Do not change turn if the guess is correct
                 turnMessage = ""  // Clear any "Next Player" message
                 isGameOver = false  // Keep the current player's turn active
+                
+                // Check if the player has won
+                if score >= 20 {
+                    isWinner = true  // Mark the player as a winner
+                    turnMessage = "You Win!"  // Display win message
+                    isGameOver = true  // End the game
+                }
             } else {
                 // If the guess is incorrect, end the turn and show the next player message
                 turnMessage = "Next Player"
-                isGameOver = true  // End the current player's turn
+                isGameOver = true
             }
         }
         
@@ -129,8 +176,21 @@ struct ContentView: View {
         guessDice1 = ""
         guessDice2 = ""
     }
+    func resetGame() {
+        // Reset all game-related variables to start fresh
+        score = 0
+        isDiceVisible = true
+        isRolling = false
+        isGameOver = false
+        isWinner = false
+        Dice1 = 0
+        Dice2 = 0
+        rotation = 0.0
+        guessDice1 = ""
+        guessDice2 = ""
+        turnMessage = ""
+    }
 }
-
 
 struct CustomText: View {
     let text: String
@@ -160,16 +220,15 @@ struct InstructionsView: View{
         ZStack {
             Color.gray.opacity(0.7).ignoresSafeArea()
             VStack {
+                Text("Dice Memory Game").font(.title)
                 VStack(alignment: .leading) {
-                    Text("In the game of Pig, players take induvidual turns. Each turn, a player repeatdly rolls a single die until either a pig is rolled or the player decides to \"hold\".")
+                    Text("In Dice Memory Game, players take induvidual turns. Each turn, a player repeatdly rolls a pair of die then are given three seconds to memorize the values to gurss.")
                         .padding()
-                    Text("If the player rolls a pig, they score nothing and it becomes the next player's turn.")
+                    Text("If the player guesses a die incorrectly, there turn ends and it's the next players turn.")
                         .padding()
-                    Text("If the player rolls any other number, it is added to their turn total and the player's turn continues.")
+                    Text("If the player guesses correctly, it is added to their score until they lose, which turns into the high score if their score is higher than the hihh score shown.")
                         .padding()
-                    Text("If a player choosesto \"hold\", their turn total is added to the game score, and it becomes the next player's turn.")
-                        .padding()
-                    Text("A player wins the game when the game scores becomes 100 or more on their turn")
+                    Text("A player wins the game when the game scores becomes 20 on their turn")
                         .padding()
                 }
                 Spacer()
