@@ -24,16 +24,15 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
         ZStack {
-            Color.gray.opacity(0.7).ignoresSafeArea()
+            Color.gray.opacity(0.7)
             VStack {
-                Image("MysteryDice").resizable().frame(width: 200, height: 200)
-                    
+                Image("MysteryDice").resizable().frame(width: 150, height: 150)
                 CustomText(text:"Dice Memory Game")
                     .font(.title)
                     .bold()
                 HStack {
                     CustomText(text: "Score: \(score)")
-                        .padding()
+                        //.padding()
                     CustomText(text: "High Score: \(highScore)")
                 }
                 HStack {
@@ -62,7 +61,7 @@ struct ContentView: View {
                             .frame(width: 175, height: 175, alignment: .center)
                     }
                 }
-                .padding()
+               // .padding()
                 HStack {
                     TextField("Enter guess for Dice 1", text: $guessDice1)
                         .padding()
@@ -135,7 +134,7 @@ struct ContentView: View {
                 }
             }
             }
-            .padding()
+            .ignoresSafeArea()
         }
     }
     func chooseRandom(times: Int) {
