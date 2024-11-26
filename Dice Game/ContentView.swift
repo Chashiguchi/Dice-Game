@@ -26,6 +26,8 @@ struct ContentView: View {
         ZStack {
             Color.gray.opacity(0.7).ignoresSafeArea()
             VStack {
+                Image("MysteryDice").resizable().frame(width: 200, height: 200)
+                    
                 CustomText(text:"Dice Memory Game")
                     .font(.title)
                     .bold()
@@ -220,13 +222,14 @@ struct InstructionsView: View{
         ZStack {
             Color.gray.opacity(0.7).ignoresSafeArea()
             VStack {
+                Image("MysteryDice").resizable().frame(width: 200, height: 200)
                 Text("Dice Memory Game").font(.title)
                 VStack(alignment: .leading) {
-                    Text("In Dice Memory Game, players take induvidual turns. Each turn, a player repeatdly rolls a pair of die then are given three seconds to memorize the values to gurss.")
+                    Text("In Dice Memory Game, players take induvidual turns. Each turn, a player rolls a pair of die then are given three seconds to memorize the values to guess.")
                         .padding()
                     Text("If the player guesses a die incorrectly, there turn ends and it's the next players turn.")
                         .padding()
-                    Text("If the player guesses correctly, it is added to their score until they lose, which turns into the high score if their score is higher than the hihh score shown.")
+                    Text("If the player guesses correctly, it is added to their score until they lose, which turns into the high score if their score is higher than the current high score shown.")
                         .padding()
                     Text("A player wins the game when the game scores becomes 20 on their turn")
                         .padding()
